@@ -1,13 +1,10 @@
 const express = require('express');
-
 const app = express()
-const PORT = 3000;
 
-app.get('/', (req, res)=> {
-    res.status(200);
+app.get('/', (req, res) => {
     res.send("root URL of server");
 })
-app.listen(PORT, (error) => {
+app.listen(3000, (error) => { 
     if(!error){
         console.log("Server is running on port " + PORT)
     }
