@@ -2,17 +2,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
-console.log(process.env.DB_CONNECTION_STRING);
 
-const app = express();
+const { noteschema } = require('./schema');
 
-const PORT = process.env.PORT || 3000;
-const DB_CONNECTION_STRING = process.env.DB_CONNECTION_STRING;
 
 //initialize express server
-app.get('/', (req, res) => {
-    res.send("root URL of server");
-})
+const app = express();
+
+const PORT = process.env.PORT || 5000;
+const DB_CONNECTION_STRING = process.env.DB_CONNECTION_STRING;
 
 app.listen(PORT, (error) => { 
     if(!error){
@@ -26,6 +24,33 @@ app.use(express.json());
 app.use(cors({
     origin: 'http://localhost:3000'
 }));
+
+//receive note
+app.post("/notes", async (request, response) => {
+    try {
+    const schema = new mongoose.Schema(noteschema);
+    const note = mongoose.model('Note', noteschema);
+    const newNote = new note(request.body);
+    await newNote.save();
+    console.log(request.body);
+    response.status(201).send(newNote);
+    } catch (err) {
+        console.error(err);
+        response.status(500).send("Failed to save note")
+    }
+})
+
+app.get("/notes", async (req, res) => {
+  try {
+    const notes = await Note.find();
+    res.send(notes);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Failed to fetch notes");
+  }
+});
+
+
 
 //initalize MongoDB connection
 mongoose.connect(DB_CONNECTION_STRING)
