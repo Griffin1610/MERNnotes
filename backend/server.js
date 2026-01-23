@@ -1,42 +1,37 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-require('dotenv').config();
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const { noteschema } = require('./schema');
+import { noteschema } from './schema.js';
+const Note = mongoose.model('Note', noteschema);
 
 
-//initialize express server
 const app = express();
-
 const PORT = process.env.PORT || 5000;
 const DB_CONNECTION_STRING = process.env.DB_CONNECTION_STRING;
 
-app.listen(PORT, (error) => { 
-    if(!error){
-        console.log("Server is running on port " + PORT)
-    }
-    else {
-        console.log("Error occured, server cannot start")
-    }})
-
+//middleware
 app.use(express.json());
 app.use(cors({
     origin: 'http://localhost:3000'
 }));
 
+//initalize MongoDB connection
+mongoose.connect(DB_CONNECTION_STRING)
+.then(() => console.log('Connected to yourDB-name database'))
+.catch((err) => console.log('Error connecting to database', err));
+
 //receive note
 app.post("/notes", async (request, response) => {
     try {
-    const schema = new mongoose.Schema(noteschema);
-    const note = mongoose.model('Note', noteschema);
-    const newNote = new note(request.body);
-    await newNote.save();
-    console.log(request.body);
-    response.status(201).send(newNote);
-    } catch (err) {
-        console.error(err);
-        response.status(500).send("Failed to save note")
+        const newNote = new Note(request.body);
+        await newNote.save();
+        response.status(201).send(newNote);
+        } catch (err) {
+            console.error(err);
+            response.status(500).send("Failed to save note")
     }
 })
 
@@ -50,9 +45,7 @@ app.get("/notes", async (req, res) => {
   }
 });
 
-
-
-//initalize MongoDB connection
-mongoose.connect(DB_CONNECTION_STRING)
-.then(() => console.log('Connected to yourDB-name database'))
-.catch((err) => console.log('Error connecting to database', err));
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
