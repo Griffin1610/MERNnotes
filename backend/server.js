@@ -2,15 +2,18 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-dotenv.config();
-
 import { noteschema } from './schema.js';
-const Note = mongoose.model('Note', noteschema);
-
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const DB_CONNECTION_STRING = process.env.DB_CONNECTION_STRING;
+const Note = mongoose.model('Note', noteschema);
+
+//initalize MongoDB connection
+mongoose.connect(DB_CONNECTION_STRING)
+.then(() => console.log('Connected to yourDB-name database'))
+.catch((err) => console.log('Error connecting to database', err));
 
 //middleware
 app.use(express.json());
@@ -18,12 +21,7 @@ app.use(cors({
     origin: 'http://localhost:3000'
 }));
 
-//initalize MongoDB connection
-mongoose.connect(DB_CONNECTION_STRING)
-.then(() => console.log('Connected to yourDB-name database'))
-.catch((err) => console.log('Error connecting to database', err));
-
-//receive note
+//receive and set notes
 app.post("/notes", async (request, response) => {
     try {
         const newNote = new Note(request.body);
