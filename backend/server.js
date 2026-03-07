@@ -21,7 +21,7 @@ app.use(cors({
     origin: 'http://localhost:3000'
 }));
 
-//receive and set notes
+//receive, set, update, delete notes
 app.post("/notes", async (request, response) => {
     try {
         const newNote = new Note(request.body);
@@ -43,7 +43,43 @@ app.get("/notes", async (req, res) => {
   }
 });
 
-// Start the server
+app.get("/notes/:id", async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).send("Note not found");
+    res.send(note);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Failed to fetch note");
+  }
+});
+
+app.put("/notes/:id", async (req, res) => {
+  try {
+    const note = await Note.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!note) return res.status(404).send("Note not found");
+    res.send(note);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Failed to update note");
+  }
+});
+
+app.delete("/notes/:id", async (req, res) => {
+  try {
+    const note = await Note.findByIdAndDelete(req.params.id);
+    if (!note) return res.status(404).send("Note not found");
+    res.status(204).send();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Failed to delete note");
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
